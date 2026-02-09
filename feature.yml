@@ -65,5 +65,5 @@
           - "============================================"
 
     - name: 6. Actual Router Test (Optional)
-      cisco.ios.ios_facts:
+      cisco.ios.ios_facts:  # This is the FQCN
       when: device_query.json.count > 0
