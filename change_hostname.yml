@@ -26,7 +26,7 @@
     - name: 3. Change Hostname on Router
       cisco.ios.ios_hostname:
         config:
-          hostname: "Router_AWX01"
+          hostname: "Router_AWXone"
         state: merged
       # This task uses the 'network_cli' connection defined in your AWX host variables
 
