@@ -1,16 +1,7 @@
----
 plugin: netbox.netbox.nb_inventory
-validate_certs: false
-config_context: false
-# Filter for active devices only
-query_filters:
-  - status: 'active'
-
-# This is the "Magic" part:
-# It creates groups in AWX based on the 'Role' you set in NetBox
-group_by:
-  - device_roles
-  - platforms
-
-# This ensures the Primary IP from NetBox is used as the 'ansible_host'
+api_endpoint: http://10.201.6.37:8000
+token: ENUaUlOPxcBtq7DjuefrYV29WcAlvLhQHBzyzSvY
 ansible_host: primary_ip
+compose:
+  ansible_network_os: "'cisco.ios.ios'"
+  ansible_connection: "'ansible.netcommon.network_cli'"
