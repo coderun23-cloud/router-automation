@@ -1,0 +1,22 @@
+---
+- name: Pull Device IP from NetBox
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Search NetBox for IP of this device
+      ansible.builtin.uri:
+        # We query the IP addresses endpoint filtered by the device name
+        url: "http://10.201.6.1:8000/api/ipam/ip-addresses/?address=10.201.6.1"
+        method: GET
+        status_code: 200
+        validate_certs: false
+        headers:
+          Authorization: "Token nbt_iPhxAmW1x8rK.hffdI8I98VMuqOkU2PUy4PNL1XjwShSG0GXRFL2x"
+          Content-Type: "application/json"
+      register: netbox_ip_data
+
+    - name: Display the IP from NetBox
+      debug:
+        msg:
+          - "Successfully reached NetBox!"
+          - "The IP address found in NetBox is: {{ netbox_ip_data.json.results[0].address }}"
