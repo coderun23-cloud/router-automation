@@ -1,7 +1,21 @@
 plugin: netbox.netbox.nb_inventory
 api_endpoint: http://10.201.6.37:8000
 token: ENUaUlOPxcBtq7DjuefrYV29WcAlvLhQHBzyzSvY
-ansible_host: primary_ip
+validate_certs: false
+
+# Group devices by your filters
+groups:
+  test_routers:
+    filter:
+      name: Router1
+      site: Server Router
+      device_role: Test-Routing
+      device_type: Cisco/c2900
+
+# Optional: pull extra info into hostvars
 compose:
-  ansible_network_os: "'cisco.ios.ios'"
-  ansible_connection: "'ansible.netcommon.network_cli'"
+  site_name: site.name
+  role_name: device_role.name
+  device_type_name: device_type.model
+  serial_number: serial
+  primary_ip: primary_ip.address
