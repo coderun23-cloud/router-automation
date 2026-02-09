@@ -1,20 +1,41 @@
 ---
-- name: Change Hostname using NetBox Data
+- name: Network Operation - Update Hostname with NetBox Verification
   hosts: Router1
   gather_facts: no
+  vars:
+    netbox_url: "http://10.201.6.37:8000"
+    netbox_token: "nbt_iPhxAmW1x8rK.zA2u8f3d1c6STZAtMubFhGe39aOnAsIkcKIlDZ4W"
+
   tasks:
-    - name: Get Device Details from NetBox
+    - name: 1. Fetch Device Details from NetBox
       ansible.builtin.uri:
-        url: "http://10.201.6.37:8000/api/dcim/devices/?name={{ inventory_hostname }}"
+        url: "{{ netbox_url }}/api/dcim/devices/?name={{ inventory_hostname | urlencode }}"
         method: GET
+        status_code: 200
         headers:
-          Authorization: "Token nbt_YOUR_TOKEN"
-      register: nb_data
+          Authorization: "Token {{ netbox_token }}"
+          Content-Type: "application/json"
+      register: device_query
       delegate_to: localhost
 
-    - name: Change Hostname on Router
+    - name: 2. Fail if device is not in NetBox
+      ansible.builtin.fail:
+        msg: "Device {{ inventory_hostname }} not found in NetBox. Aborting change."
+      when: device_query.json.count == 0
+
+    - name: 3. Change Hostname on Router
       cisco.ios.ios_hostname:
         config:
-          hostname: "Router1-New"
+          hostname: "Router1-AWX"
         state: merged
-      # This task uses the IP address automatically pulled by the NetBox plugin
+      # This task uses the 'network_cli' connection defined in your AWX host variables
+
+    - name: 4. Verify Change
+      cisco.ios.ios_command:
+        commands:
+          - show running-config | include hostname
+      register: verify_output
+
+    - name: 5. Display Result
+      ansible.builtin.debug:
+        msg: "Hostname updated successfully. Router reports: {{ verify_output.stdout[0] }}"
