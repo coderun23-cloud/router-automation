@@ -64,6 +64,3 @@
           - "  Execution Node:  {{ awx_pod_name }}"
           - "============================================"
 
-    - name: 6. Actual Router Test (Optional)
-      cisco.ios.ios_facts:  # This is the FQCN
-      when: device_query.json.count > 0
