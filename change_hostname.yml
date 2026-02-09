@@ -1,14 +1,20 @@
-- name: Network Operation - Update Hostname
+---
+- name: Change Hostname using NetBox Data
   hosts: Router1
   gather_facts: no
-
-  vars:
-    ansible_connection: network_cli
-    ansible_network_os: cisco.ios.ios
-
   tasks:
-    - name: Configure Hostname to Router1-AWX
+    - name: Get Device Details from NetBox
+      ansible.builtin.uri:
+        url: "http://10.201.6.37:8000/api/dcim/devices/?name={{ inventory_hostname }}"
+        method: GET
+        headers:
+          Authorization: "Token nbt_YOUR_TOKEN"
+      register: nb_data
+      delegate_to: localhost
+
+    - name: Change Hostname on Router
       cisco.ios.ios_hostname:
         config:
-          hostname: Router1-AWX
+          hostname: "Router1-New"
         state: merged
+      # This task uses the IP address automatically pulled by the NetBox plugin
