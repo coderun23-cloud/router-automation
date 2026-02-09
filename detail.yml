@@ -1,0 +1,28 @@
+---
+- name: Device Info Report - Hostname, User, and SSH
+  hosts: Router1
+  gather_facts: no
+
+  tasks:
+    - name: 1. Gather Device Status and Config
+      cisco.ios.ios_command:
+        commands:
+          - show running-config | include hostname
+          - show users
+          - show ip ssh | include SSH
+      register: device_output
+
+    - name: 2. Display Formatted Report
+      ansible.builtin.debug:
+        msg:
+          - "============================================"
+          - "          DEVICE STATUS REPORT              "
+          - "============================================"
+          - " HOSTNAME: {{ device_output.stdout[0] | regex_replace('hostname ', '') }}"
+          - "--------------------------------------------"
+          - " CURRENT ACTIVE USERS:"
+          - "{{ device_output.stdout[1] }}"
+          - "--------------------------------------------"
+          - " SSH VERSION DETAILS:"
+          - "{{ device_output.stdout[2] }}"
+          - "============================================"
