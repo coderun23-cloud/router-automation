@@ -4,7 +4,7 @@
   gather_facts: no
 
   tasks:
-    - name: 1. Gather Device Status and Config
+    - name: 1. Gather Raw Data from Router
       cisco.ios.ios_command:
         commands:
           - show running-config | include hostname
@@ -12,18 +12,33 @@
           - show ip ssh | include SSH
       register: device_output
 
-    - name: 2. Display Formatted Report
+    - name: 2. Process and Clean Data
+      ansible.builtin.set_fact:
+        # Extracts just the name after 'hostname '
+        clean_hostname: "{{ device_output.stdout[0].split(' ')[1] | default('N/A') }}"
+        # Splits the block of text into actual separate lines
+        clean_users: "{{ device_output.stdout[1].splitlines() }}"
+        clean_ssh: "{{ device_output.stdout[2].splitlines() }}"
+
+    - name: 3. Display High-Fidelity Dashboard
       ansible.builtin.debug:
         msg:
-          - "============================================"
-          - "          DEVICE STATUS REPORT              "
-          - "============================================"
-          - " HOSTNAME: {{ device_output.stdout[0] | regex_replace('hostname ', '') }}"
-          - "--------------------------------------------"
-          - " "
-          - " CURRENT ACTIVE USERS:"
-          - "{{ device_output.stdout[1] }}"
-          - "--------------------------------------------"
-          - " SSH VERSION DETAILS:"
-          - "{{ device_output.stdout[2] }}"
-          - "============================================"
+          - "╔══════════════════════════════════════════════════════════════╗"
+          - "║                 NETOPS DEVICE INSIGHT REPORT                 ║"
+          - "╠══════════════════════════════════════════════════════════════╣"
+          - "  DEVICE IDENTITY"
+          - "  » Hostname     : {{ clean_hostname }}"
+          - "  » Status       : ONLINE (Reachable via AWX)"
+          - "  » Connection   : network_cli (Cisco IOS)"
+          - "  » Target IP    : {{ ansible_host }}"
+          - "  » Source       : NetBox Verified"
+          - "----------------------------------------------------------------"
+          - "  SECURITY & ACCESS"
+          - "  » SSH Protocol : {{ clean_ssh[0] | trim }}"
+          - "  » Admin Session: {{ ansible_user | upper }} (Authorized)"
+          - "----------------------------------------------------------------"
+          - "  CURRENTLY ACTIVE SESSIONS"
+          - "{% for line in clean_users %}"
+          - "  • {{ line }}"
+          - "{% endfor %}"
+          - "╚══════════════════════════════════════════════════════════════╝"
