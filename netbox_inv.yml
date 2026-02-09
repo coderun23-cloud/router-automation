@@ -1,18 +1,19 @@
+---
 plugin: netbox.netbox.nb_inventory
-api_endpoint: http://10.201.6.37:8000
-token: nbt_iPhxAmW1x8rK.zA2u8f3d1c6STZAtMubFhGe39aOnAsIkcKIlDZ4W
+api_endpoint: "http://10.201.6.37:8000"
+token: "nbt_iPhxAmW1x8rK.zA2u8f3d1c6STZAtMubFhGe39aOnAsIkcKIlDZ4W"
 validate_certs: false
 
-# Group devices by your filters
-groups:
-  test_routers:
-    filter:
-      name: Router1
-      site: Server Router
-      device_role: Test-Routing
-      device_type: Cisco/c2900
+# Grouping logic
+group_by:
+  - device_roles
+  - sites
 
-# Optional: pull extra info into hostvars
+# Custom filter for your specific group
+query_filters:
+  - name: "Router1"
+
+# Pulling extra info into hostvars
 compose:
   site_name: site.name
   role_name: device_role.name
