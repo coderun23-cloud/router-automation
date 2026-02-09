@@ -1,0 +1,21 @@
+---
+- name: Network Operation - Update Hostname
+  hosts: Router1
+  gather_facts: no
+
+  tasks:
+    - name: Configure Hostname to Router1-AWX
+      cisco.ios.ios_hostname:
+        config:
+          hostname: "Router1-AWX"
+        state: merged
+
+    - name: Verify change with a show command
+      cisco.ios.ios_command:
+        commands:
+          - show ip interface brief | include line
+      register: output
+
+    - name: Display Output
+      debug:
+        var: output.stdout_lines
