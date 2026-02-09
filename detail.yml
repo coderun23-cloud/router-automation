@@ -15,28 +15,23 @@
     - name: 2. Process and Clean Data
       ansible.builtin.set_fact:
         clean_hostname: "{{ device_output.stdout[0].split(' ')[1] | default('N/A') }}"
-        clean_users: "{{ device_output.stdout[1].splitlines() }}"
-        clean_ssh: "{{ device_output.stdout[2].splitlines() }}"
+        # We combine everything into one list of strings for a clean vertical scroll
+        report_lines:
+          - "╔══════════════════════════════════════════════════════════════╗"
+          - "║                 NETOPS DEVICE INSIGHT REPORT                 ║"
+          - "╠══════════════════════════════════════════════════════════════╣"
+          - "  DEVICE IDENTITY"
+          - "  » Hostname     : {{ device_output.stdout[0].split(' ')[1] | default('N/A') }}"
+          - "  » Status       : ONLINE (Reachable via AWX)"
+          - "  » Target IP    : {{ ansible_host }}"
+          - "----------------------------------------------------------------"
+          - "  SECURITY & ACCESS"
+          - "  » SSH Protocol : {{ device_output.stdout[2] | trim }}"
+          - "  » Admin Session: {{ ansible_user | upper | default('ADMIN') }}"
+          - "----------------------------------------------------------------"
+          - "  CURRENTLY ACTIVE SESSIONS"
 
     - name: 3. Display High-Fidelity Dashboard
       ansible.builtin.debug:
-        msg: |
-          ╔══════════════════════════════════════════════════════════════╗
-          ║                 NETOPS DEVICE INSIGHT REPORT                 ║
-          ╠══════════════════════════════════════════════════════════════╣
-            DEVICE IDENTITY
-            » Hostname     : {{ clean_hostname }}
-            » Status       : ONLINE (Reachable via AWX)
-            » Connection   : network_cli (Cisco IOS)
-            » Target IP    : {{ ansible_host }}
-            » Source       : NetBox Verified
-          ----------------------------------------------------------------
-            SECURITY & ACCESS
-            » SSH Protocol : {{ clean_ssh[0] | trim }}
-            » Admin Session: {{ ansible_user | upper if ansible_user is defined else 'ADMIN' }}
-          ----------------------------------------------------------------
-            CURRENTLY ACTIVE SESSIONS
-          {% for line in clean_users %}
-            • {{ line }}
-          {% endfor %}
-          ╚══════════════════════════════════════════════════════════════╝
+        msg: "{{ item }}"
+      loop: "{{ report_lines + device_output.stdout[1].splitlines() + ['╚══════════════════════════════════════════════════════════════╝'] }}"
