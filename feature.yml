@@ -5,7 +5,7 @@
   tasks:
     - name: Search NetBox for IP of this device
       ansible.builtin.uri:
-        url: "http://10.201.6.1:8000/api/ipam/ip-addresses/?address=10.201.6.1"
+        url: "http://10.201.6.37:8000/api/ipam/ip-addresses/?address=10.201.6.37"
         method: GET
         status_code: 200
         validate_certs: false
