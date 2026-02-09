@@ -5,7 +5,6 @@
   tasks:
     - name: Search NetBox for IP of this device
       ansible.builtin.uri:
-        # We query the IP addresses endpoint filtered by the device name
         url: "http://10.201.6.1:8000/api/ipam/ip-addresses/?address=10.201.6.1"
         method: GET
         status_code: 200
@@ -14,9 +13,16 @@
           Authorization: "Token nbt_iPhxAmW1x8rK.hffdI8I98VMuqOkU2PUy4PNL1XjwShSG0GXRFL2x"
           Content-Type: "application/json"
       register: netbox_ip_data
+      # THIS IS THE KEY: Run the web request from AWX, not the router
+      delegate_to: localhost
+
+    - name: Set the IP address for the rest of the play
+      ansible.builtin.set_fact:
+        ansible_host: "{{ netbox_ip_data.json.results[0].address | ipaddr('address') }}"
+      when: netbox_ip_data.json.count > 0
 
     - name: Display the IP from NetBox
       debug:
         msg:
           - "Successfully reached NetBox!"
-          - "The IP address found in NetBox is: {{ netbox_ip_data.json.results[0].address }}"
+          - "The IP address found is: {{ ansible_host }}"
