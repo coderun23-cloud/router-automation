@@ -1,28 +1,66 @@
 ---
-- name: Pull Device IP from NetBox
+- name: Consolidation - Strong Foundation Playbook
   hosts: all
   gather_facts: no
+  vars:
+    netbox_url: "http://10.201.6.37:8000"
+    netbox_token: "nbt_iPhxAmW1x8rK.zA2u8f3d1c6STZAtMubFhGe39aOnAsIkcKIlDZ4W"
+
   tasks:
-    - name: Search NetBox for IP of this device
+    - name: 1. Verify NetBox API Reachability
       ansible.builtin.uri:
-        url: "http://10.201.6.37:8000/api/ipam/ip-addresses/?address=10.201.6.37"
+        url: "{{ netbox_url }}/api/status/"
         method: GET
         status_code: 200
         validate_certs: false
         headers:
-          Authorization: "Token nbt_iPhxAmW1x8rK.hffdI8I98VMuqOkU2PUy4PNL1XjwShSG0GXRFL2x"
+          Authorization: "Token {{ netbox_token }}"
           Content-Type: "application/json"
-      register: netbox_ip_data
-      # THIS IS THE KEY: Run the web request from AWX, not the router
-      delegate_to: localhost
+      register: netbox_status
 
-    - name: Set the IP address for the rest of the play
-      ansible.builtin.set_fact:
-        ansible_host: "{{ netbox_ip_data.json.results[0].address | ipaddr('address') }}"
-      when: netbox_ip_data.json.count > 0
+    - name: 2. Fetch Specific Device Details from NetBox
+      ansible.builtin.uri:
+        url: "{{ netbox_url }}/api/dcim/devices/?name={{ inventory_hostname | urlencode }}"
+        method: GET
+        status_code: 200
+        headers:
+          Authorization: "Token {{ netbox_token }}"
+          Content-Type: "application/json"
+      register: device_query
 
-    - name: Display the IP from NetBox
-      debug:
+    - name: 3. DEBUG - Show API Results
+      ansible.builtin.debug:
         msg:
-          - "Successfully reached NetBox!"
-          - "The IP address found is: {{ ansible_host }}"
+          - "Searching NetBox for: {{ inventory_hostname }}"
+          - "Found Devices Count: {{ device_query.json.count }}"
+
+    - name: 4. Set Facts for Display
+      ansible.builtin.set_fact:
+        nb_role: "{{ device_query.json.results[0].role.name | default('Data Missing') if device_query.json.count > 0 else 'Name Mismatch in NetBox' }}"
+        nb_manu: "{{ device_query.json.results[0].device_type.manufacturer.name | default('Data Missing') if device_query.json.count > 0 else 'Name Mismatch in NetBox' }}"
+        nb_type: "{{ device_query.json.results[0].device_type.model | default('Data Missing') if device_query.json.count > 0 else 'Name Mismatch in NetBox' }}"
+        awx_pod_name: "{{ lookup('env', 'HOSTNAME') | default('Unknown Pod', true) }}"
+        target_ip: "{{ ansible_host | default('No IP in Inventory', true) }}"
+
+    - name: 5. Display Enhanced Foundation Report
+      ansible.builtin.debug:
+        msg:
+          - "============================================"
+          - "       DEVICE REPORT      "
+          - "============================================"
+          - "DEVICE CAPTURE:"
+          - "  Target Name:     {{ inventory_hostname }}"
+          - "  Inventory IP:    {{ target_ip }}"
+          - "  Manufacturer:    {{ nb_manu }}"
+          - "  Device Model:    {{ nb_type }}"
+          - "  NetBox Role:     {{ nb_role }}"
+          - ""
+          - "SOURCE OF TRUTH (NETBOX):"
+          - "  API Status:      Connected (200 OK)"
+          - "  NetBox Version:  {{ netbox_status.json['netbox-version'] }}"
+          - "  API Latency:     {{ netbox_status.elapsed }} seconds"
+          - ""
+          - "AUTOMATION CONTEXT:"
+          - "  Execution Node:  {{ awx_pod_name }}"
+          - "  Controller:      AWX on K3s (Local Cluster)"
+          - "============================================"
