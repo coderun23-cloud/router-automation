@@ -17,6 +17,7 @@
           Authorization: "Token {{ netbox_token }}"
           Content-Type: "application/json"
       register: netbox_status
+      delegate_to: localhost  # CRITICAL: Runs on AWX Pod
 
     - name: 2. Fetch Specific Device Details from NetBox
       ansible.builtin.uri:
@@ -27,6 +28,7 @@
           Authorization: "Token {{ netbox_token }}"
           Content-Type: "application/json"
       register: device_query
+      delegate_to: localhost  # CRITICAL: Runs on AWX Pod
 
     - name: 3. DEBUG - Show API Results
       ansible.builtin.debug:
@@ -46,21 +48,22 @@
       ansible.builtin.debug:
         msg:
           - "============================================"
-          - "       DEVICE REPORT      "
+          - "        DEVICE REPORT: {{ inventory_hostname }} "
           - "============================================"
           - "DEVICE CAPTURE:"
-          - "  Target Name:     {{ inventory_hostname }}"
-          - "  Inventory IP:    {{ target_ip }}"
           - "  Manufacturer:    {{ nb_manu }}"
           - "  Device Model:    {{ nb_type }}"
           - "  NetBox Role:     {{ nb_role }}"
+          - "  Primary IP:      {{ target_ip }}"
           - ""
           - "SOURCE OF TRUTH (NETBOX):"
           - "  API Status:      Connected (200 OK)"
           - "  NetBox Version:  {{ netbox_status.json['netbox-version'] }}"
-          - "  API Latency:     {{ netbox_status.elapsed }} seconds"
           - ""
           - "AUTOMATION CONTEXT:"
           - "  Execution Node:  {{ awx_pod_name }}"
-          - "  Controller:      AWX on K3s (Local Cluster)"
           - "============================================"
+
+    - name: 6. Actual Router Test (Optional)
+      cisco.ios.ios_facts:
+      when: device_query.json.count > 0
