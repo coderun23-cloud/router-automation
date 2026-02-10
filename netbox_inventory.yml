@@ -1,0 +1,10 @@
+---
+plugin: netbox.netbox.nb_inventory
+api_endpoint: http://10.201.6.37:8000
+token: nbt_iPhxAmW1x8rK.zA2u8f3d1c6STZAtMubFhGe39aOnAsIkcKIlDZ4W
+validate_certs: false
+group_by:
+  - device_roles
+  - sites
+query_filters:
+  - status: 'active'
