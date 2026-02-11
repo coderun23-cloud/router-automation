@@ -1,5 +1,5 @@
 ---
-plugin: ansible_collections.netbox.netbox.plugins.inventory.nb_inventory
+plugin: netbox.netbox.nb_inventory
 api_endpoint: "{{ lookup('env','NETBOX_API') }}"
 token: "{{ lookup('env','NETBOX_TOKEN') }}"
 validate_certs: false
