@@ -1,7 +1,7 @@
 ---
 plugin: netbox.netbox.nb_inventory
 api_endpoint: "http://10.201.6.37:8000"
-token: "nbt_iPhxAmW1x8rK.ZQjLEavP9sHl9GMA5AuNNtSLHJTnGUGyYmUKRPMc"
+token: "nbt_HaQ2sxFncXGG.kH2ecpVv5zIwCGL2rekELmnGTUJLGMXl5WhNQoB2"
 validate_certs: false
 
 group_by:
