@@ -28,14 +28,15 @@
       ansible.builtin.fail:
         msg: "Device {{ inventory_hostname }} not found in NetBox. Aborting."
       when: device_query.json.count == 0
+
     - name: 3. Change Hostname on Router
-          cisco.ios.ios_hostname:
-            config:
-              hostname: "{{ target_hostname }}"
-            state: merged
-          when: 
-            - target_hostname is defined 
-            - target_hostname | length > 0
+      cisco.ios.ios_hostname:
+        config:
+          hostname: "{{ target_hostname }}"
+        state: merged
+      when: 
+        - target_hostname is defined 
+        - target_hostname | length > 0
 
     - name: 4. Verify Hostname Change
       cisco.ios.ios_command:
