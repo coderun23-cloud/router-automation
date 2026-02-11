@@ -1,14 +1,21 @@
 ---
 plugin: netbox.netbox.nb_inventory
 api_endpoint: "http://10.201.6.37:8000"
-token: "nbt_iPhxAmW1x8rK.zA2u8f3d1c6STZAtMubFhGe39aOnAsIkcKIlDZ4W"
+# Prefer to pass the token via the NETBOX_API_TOKEN environment variable
 validate_certs: false
 
+# Group hosts by these NetBox attributes
 group_by:
   - device_roles
   - sites
 
+# Filter devices fetched from NetBox
 query_filters:
   - name: "Router1"
   - role: "test-routing"
   - status: "active"
+
+# Make sure Ansible connects to the device's primary IPv4
+compose:
+  ansible_host: primary_ip4
+``
