@@ -28,7 +28,7 @@
     - name: 3. Change Hostname on Router
       cisco.ios.ios_hostname:
         config:
-          hostname: "{{ target_hostname }}"
+          hostname Testing123
         state: merged
       when: target_hostname is defined and target_hostname | length > 0
 
