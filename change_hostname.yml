@@ -2,13 +2,17 @@
 - name: Network Operation - Update Hostname with NetBox Verification
   hosts: Router1
   gather_facts: no
-  connection: network_cli 
+  connection: network_cli
   vars:
     ansible_network_os: cisco.ios.ios
     netbox_url: "http://10.201.6.37:8000"
     netbox_token: "nbt_HaQ2sxFncXGG.kH2ecpVv5zIwCGL2rekELmnGTUJLGMXl5WhNQoB2"
 
   tasks:
+    - name: Debug - check target_hostname from survey
+      debug:
+        msg: "Target hostname received: {{ target_hostname }}"
+
     - name: 1. Fetch Device Details from NetBox
       ansible.builtin.uri:
         url: "{{ netbox_url }}/api/dcim/devices/?name={{ inventory_hostname | urlencode }}"
@@ -27,12 +31,10 @@
 
     - name: 3. Change Hostname on Router
       cisco.ios.ios_hostname:
-        config:
-          hostname: "{{ target_hostname }}"
-        state: merged
+        hostname: "{{ target_hostname }}"
       when: target_hostname is defined and target_hostname | length > 0
 
-    - name: 4. Verify Change
+    - name: 4. Verify Hostname Change
       cisco.ios.ios_command:
         commands:
           - show running-config | include hostname
