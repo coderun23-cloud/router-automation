@@ -1,19 +1,12 @@
 ---
 plugin: netbox.netbox.nb_inventory
-api_endpoint: "{{ lookup('env','NETBOX_API') }}"
-token: "{{ lookup('env','NETBOX_TOKEN') }}"
+api_endpoint: "http://10.201.6.37:8000"
+token: "nbt_HaQ2sxFncXGG.kH2ecpVv5zIwCGL2rekELmnGTUJLGMXl5WhNQoB2"
 validate_certs: false
-
+config_context: true
 group_by:
   - device_roles
   - sites
-
+  - platforms
 query_filters:
-  - name: Router1
-    device_role: test-routing
-    status: active
-
-compose:
-  ansible_host: primary_ip4
-  ansible_connection: network_cli
-  ansible_network_os: cisco.ios.ios
+  - status: 'active'
