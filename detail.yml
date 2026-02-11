@@ -3,6 +3,10 @@
   hosts: Router1
   gather_facts: no
   connection: network_cli
+  vars:
+    # This tells Ansible to use the Cisco IOS driver for the connection
+    ansible_network_os: cisco.ios.ios
+    
   tasks:
     - name: 1. Gather Raw Data from Router
       cisco.ios.ios_command:
@@ -15,17 +19,22 @@
     - name: 2. Process and Clean Data
       ansible.builtin.set_fact:
         clean_hostname: "{{ device_output.stdout[0].split(' ')[1] | default('N/A') }}"
-        # We combine everything into one list of strings for a clean vertical scroll
         report_lines:
           - "╔══════════════════════════════════════════════════════════════╗"
-          - "║                 NETOPS DEVICE INSIGHT REPORT                 ║"
+          - "║                  NETOPS DEVICE INSIGHT REPORT                ║"
           - "╠══════════════════════════════════════════════════════════════╣"
           - "  DEVICE IDENTITY"
           - "  » Hostname     : {{ device_output.stdout[0].split(' ')[1] | default('N/A') }}"
           - "  » Status       : ONLINE (Reachable via AWX)"
-          - "  » Target IP    : {{ ansible_host }}"
+          - "  » Target IP    : {{ ansible_host | default(inventory_hostname) }}"
           - "----------------------------------------------------------------"
           - "  SECURITY & ACCESS"
           - "  » SSH Protocol : {{ device_output.stdout[2] | trim }}"
           - "----------------------------------------------------------------"
           - "  CURRENTLY ACTIVE SESSIONS"
+          - "{{ device_output.stdout[1] }}"
+          - "╚══════════════════════════════════════════════════════════════╝"
+
+    - name: 3. Display Final Report
+      ansible.builtin.debug:
+        msg: "{{ report_lines }}"
