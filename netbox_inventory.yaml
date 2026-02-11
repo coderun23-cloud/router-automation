@@ -1,5 +1,5 @@
 ---
-plugin: netbox.netbox.nb_inventory
+plugin: ansible_collections.netbox.netbox.plugins.inventory.nb_inventory
 api_endpoint: "{{ lookup('env','NETBOX_API') }}"
 token: "{{ lookup('env','NETBOX_TOKEN') }}"
 validate_certs: false
@@ -9,9 +9,9 @@ group_by:
   - sites
 
 query_filters:
-  name: "Router1"
-  role: "test-routing"
-  status: "active"
+  name: Router1
+  device_role: test-routing
+  status: active
 
 compose:
   ansible_host: primary_ip4
