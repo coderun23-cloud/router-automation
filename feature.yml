@@ -4,7 +4,7 @@
   gather_facts: no
   vars:
     netbox_url: "http://10.201.6.37:8000"
-    netbox_token: "nbt_iPhxAmW1x8rK.zA2u8f3d1c6STZAtMubFhGe39aOnAsIkcKIlDZ4W"
+    netbox_token: "nbt_HaQ2sxFncXGG.kH2ecpVv5zIwCGL2rekELmnGTUJLGMXl5WhNQoB2"
 
   tasks:
     - name: 1. Verify NetBox API Reachability
