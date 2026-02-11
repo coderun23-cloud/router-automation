@@ -2,7 +2,7 @@
 - name: Device Info Report - Hostname, User, and SSH
   hosts: Router1
   gather_facts: no
-
+  connection: network_cli
   tasks:
     - name: 1. Gather Raw Data from Router
       cisco.ios.ios_command:
