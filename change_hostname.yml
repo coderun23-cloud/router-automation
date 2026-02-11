@@ -2,9 +2,9 @@
 - name: Network Operation - Update Hostname with NetBox Verification
   hosts: Router1
   gather_facts: no
-  connection: network_cli  # <--- REQUIRED for Cisco modules
+  connection: network_cli 
   vars:
-    ansible_network_os: cisco.ios.ios # <--- Tells Ansible which driver to use
+    ansible_network_os: cisco.ios.ios
     netbox_url: "http://10.201.6.37:8000"
     netbox_token: "nbt_HaQ2sxFncXGG.kH2ecpVv5zIwCGL2rekELmnGTUJLGMXl5WhNQoB2"
 
@@ -28,7 +28,7 @@
     - name: 3. Change Hostname on Router
       cisco.ios.ios_hostname:
         config:
-          hostname: "Router_AWXone"
+          hostname: "{{ target_hostname }}" # <--- This variable comes from the AWX Survey
         state: merged
 
     - name: 4. Verify Change
