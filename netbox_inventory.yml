@@ -8,9 +8,9 @@ group_by:
   - sites
 
 query_filters:
-  - name: "Router1"
-  - role: "test-routing"
-  - status: "active"
+  name: "Router1"
+  role: "test-routing"
+  status: "active"
 
 compose:
-  ansible_host: primary_ip4.address | regex_replace('/.*', '')
+  ansible_host: "{{ primary_ip4.address | regex_replace('/.*', '') }}"
