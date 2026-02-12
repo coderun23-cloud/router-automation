@@ -6,7 +6,7 @@
   vars:
     # This tells Ansible to use the Cisco IOS driver for the connection
     ansible_network_os: cisco.ios.ios
-    
+
   tasks:
     - name: 1. Gather Raw Data from Router
       cisco.ios.ios_command:
@@ -31,8 +31,6 @@
           - "  SECURITY & ACCESS"
           - "  » SSH Protocol : {{ device_output.stdout[2] | trim }}"
           - "----------------------------------------------------------------"
-          - "  CURRENTLY ACTIVE SESSIONS"
-          - "{{ device_output.stdout[1] }}"
           - "╚══════════════════════════════════════════════════════════════╝"
 
     - name: 3. Display Final Report
