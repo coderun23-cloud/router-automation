@@ -8,11 +8,13 @@
     netbox_url: "http://10.201.6.37:8000"
     netbox_token: "nbt_HaQ2sxFncXGG.kH2ecpVv5zIwCGL2rekELmnGTUJLGMXl5WhNQoB2"
 
-  tasks:
-    - name: Debug - check target_hostname from survey
-      debug:
-        msg: "Target hostname received: {{ target_hostname }}"
+  pre_tasks:
+    - name: Validate Survey Input
+      ansible.builtin.fail:
+        msg: "The variable 'target_hostname' is empty. Please provide a hostname via the survey."
+      when: target_hostname is not defined or target_hostname | length == 0
 
+  tasks:
     - name: 1. Fetch Device Details from NetBox
       ansible.builtin.uri:
         url: "{{ netbox_url }}/api/dcim/devices/?name={{ inventory_hostname | urlencode }}"
@@ -32,11 +34,8 @@
     - name: 3. Change Hostname on Router
       cisco.ios.ios_hostname:
         config:
-          hostname: "{{target_hostname}}"
+          hostname: "{{ target_hostname }}"
         state: merged
-      when: 
-        - target_hostname is defined 
-        - target_hostname | length > 0
 
     - name: 4. Verify Hostname Change
       cisco.ios.ios_command:
