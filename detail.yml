@@ -18,18 +18,17 @@
 
     - name: 2. View Console Output
       ansible.builtin.debug:
-        msg: 
-          - "========================================================================"
-          - "  CONNECTED TO DEVICE: {{ inventory_hostname | upper }}"
-          - "========================================================================"
-          - "{% if ssh_results.results is defined %}"
-          - "{% for result in ssh_results.results %}"
-          - "PROMPT> {{ result.item }}"
-          - "OUTPUT:"
-          - "{{ result.stdout | default('-- NO OUTPUT --') }}"
-          - "------------------------------------------------------------------------"
-          - "{% endfor %}"
-          - "{% endif %}"
-          - "  SESSION LOG ENDED"
-          - "========================================================================"
-      when: manual_ssh_input | trim | length > 0
+        msg: |
+          
+          ========================================================================
+             VIRTUAL TERMINAL SESSION: {{ inventory_hostname | upper }}
+          ========================================================================
+          {% for result in ssh_results.results %}
+          {{ inventory_hostname }}# {{ result.item }}
+          {{ result.stdout | default('-- [COMMAND EXECUTED] --') }}
+
+          {% endfor %}
+          ========================= [ SESSION ENDED ] ============================
+      when: 
+        - manual_ssh_input | trim | length > 0
+        - ssh_results.results is defined
