@@ -10,20 +10,20 @@
     - name: Execute Manual CLI Input
       ansible.netcommon.cli_command:
         command: "{{ item }}"
-      # This splits your multi-line survey into individual commands
       loop: "{{ manual_cli_input.split('\n') }}"
       register: command_results
       when: manual_cli_input | length > 0
 
     - name: Display Router Output
       ansible.builtin.debug:
-        msg: 
-          - "------------------------------------------------"
-          - "DEVICE: {{ inventory_hostname }}"
-          - "------------------------------------------------"
+        msg: |
+          ------------------------------------------------
+          DEVICE: {{ inventory_hostname }}
+          ------------------------------------------------
           {% for result in command_results.results %}
-          - "COMMAND: {{ result.item }}"
-          - "OUTPUT:"
-          - "{{ result.stdout }}"
-          - "------------------------------------------------"
+          COMMAND: {{ result.item }}
+          OUTPUT:
+          {{ result.stdout }}
+          ------------------------------------------------
           {% endfor %}
+      when: manual_cli_input | length > 0
