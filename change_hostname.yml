@@ -1,6 +1,6 @@
 ---
 - name: Network Operation - Update Hostname with NetBox Verification
-  hosts: Router1
+  hosts: R1
   gather_facts: no
   connection: network_cli
   vars:
