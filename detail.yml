@@ -1,5 +1,5 @@
 ---
-- name: Hybrid Network Operation - Show or Config
+- name: Cisco Manual Configuration Portal (DNAC Style)
   hosts: R1
   gather_facts: no
   connection: network_cli
@@ -7,27 +7,19 @@
     ansible_network_os: cisco.ios.ios
 
   tasks:
-    - name: 1. Detect Intent (Config vs Show)
-      ansible.builtin.set_fact:
-        is_config: "{{ true if 'conf' in manual_input or 'int' in manual_input or 'ip ' in manual_input else false }}"
+    - name: Apply Manual CLI Configuration
+      ansible.netcommon.cli_config:
+        config: "{{ manual_cli_input }}"
+      register: result
+      when: manual_cli_input | length > 0
 
-    - name: 2. Execute as CONFIG (if keywords detected)
-      cisco.ios.ios_config:
-        # We strip out 'conf t' if the user typed it, as Ansible does it automatically
-        lines: "{{ manual_input | regex_replace('(?i)conf(igure)?\\s+t(erminal)?', '') | trim | split('\n') }}"
-      register: config_res
-      when: is_config
-
-    - name: 3. Execute as SHOW/EXEC (if no config keywords)
-      cisco.ios.ios_command:
-        commands: "{{ manual_input.split('\n') }}"
-      register: command_res
-      when: not is_config
-
-    - name: 4. Display Result
+    - name: Summary of Changes
       ansible.builtin.debug:
         msg: 
-          - "REPORT FOR: {{ inventory_hostname }}"
-          - "MODE USED: {{ 'Configuration' if is_config else 'Exec/Show' }}"
-          - "OUTPUT:"
-          - "{{ config_res.updates if is_config else command_res.stdout_lines }}"
+          - "------------------------------------------------"
+          - "DEVICE: {{ inventory_hostname }}"
+          - "COMMANDS SENT:"
+          - "{{ manual_cli_input }}"
+          - "------------------------------------------------"
+          - "ROUTER RESPONSE:"
+          - "{{ result.updates if result.changed else 'No changes required/applied' }}"
