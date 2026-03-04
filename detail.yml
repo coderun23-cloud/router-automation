@@ -5,31 +5,35 @@
   connection: network_cli
   vars:
     ansible_network_os: cisco.ios.ios
-    # Fallback in case survey is missing
     manual_ssh_input: ""
 
   tasks:
     - name: 1. Execute Manual CLI Input
       ansible.netcommon.cli_command:
         command: "{{ item }}"
-      # Filters out empty lines and white space
       loop: "{{ manual_ssh_input.split('\n') | select('regex', '\\S') | list }}"
       register: ssh_results
       when: manual_ssh_input | trim | length > 0
+      ignore_errors: yes
 
     - name: 2. View Console Output
       ansible.builtin.debug:
         msg: |
-          ========= [ SSH SESSION CONSOLE ] =========
-          DEVICE: {{ inventory_hostname }}
+          
+          ┌────────────────────────────────────────────────────────────────────────┐
+          │  SSH CONSOLE SESSION: {{ inventory_hostname | upper }} 
+          │  STATUS: CONNECTED 
+          └────────────────────────────────────────────────────────────────────────┘
           {% if ssh_results.results is defined %}
           {% for result in ssh_results.results %}
+          {{ inventory_hostname }}# {{ result.item }}
+          {{ result.stdout | default('-- [No Output] --') }}
           
-          > {{ result.item }}
-          {{ result.stdout | default('No output') }}
           {% endfor %}
           {% else %}
-          NO COMMANDS WERE EXECUTED.
+          [!] SYSTEM ALERT: NO COMMANDS WERE PROVIDED IN SURVEY.
           {% endif %}
-          ===========================================
+          ┌────────────────────────────────────────────────────────────────────────┐
+          │  END OF SESSION - COMMANDS EXECUTED: {{ ssh_results.results | length if ssh_results.results is defined else 0 }}
+          └────────────────────────────────────────────────────────────────────────┘
       when: manual_ssh_input | trim | length > 0
