@@ -1,36 +1,32 @@
 ---
-- name: Device Info Report - Hostname, User, and SSH
+- name: Network Operation - Manual Configuration Entry
   hosts: Router1
   gather_facts: no
   connection: network_cli
   vars:
-    # This tells Ansible to use the Cisco IOS driver for the connection
     ansible_network_os: cisco.ios.ios
 
   tasks:
-    - name: 1. Gather Raw Data from Router
-      cisco.ios.ios_command:
-        commands:
-          - show running-config | include hostname
-          - show users
-          - show ip ssh | include SSH
-      register: device_output
+    - name: 1. Apply User Provided Configuration
+      cisco.ios.ios_config:
+        lines: "{{ manual_config_commands.split('\n') }}"
+      register: config_output
+      when: manual_config_commands is defined and manual_config_commands | length > 0
 
-    - name: 2. Process and Clean Data
+    - name: 2. Generate Insight Report
       ansible.builtin.set_fact:
-        clean_hostname: "{{ device_output.stdout[0].split(' ')[1] | default('N/A') }}"
         report_lines:
           - "╔══════════════════════════════════════════════════════════════╗"
-          - "║                  NETOPS DEVICE INSIGHT REPORT                ║"
+          - "║                CONFIGURATION CHANGE REPORT                   ║"
           - "╠══════════════════════════════════════════════════════════════╣"
-          - "  DEVICE IDENTITY"
-          - "  » Hostname     : {{ device_output.stdout[0].split(' ')[1] | default('N/A') }}"
-          - "  » Status       : ONLINE (Reachable via AWX)"
-          - "  » Target IP    : {{ ansible_host | default(inventory_hostname) }}"
+          - "  DEVICE: {{ inventory_hostname }}"
+          - "  STATUS: {% if config_output.changed %}CHANGES APPLIED{% else %}NO CHANGES MADE{% endif %}"
           - "----------------------------------------------------------------"
-          - "  SECURITY & ACCESS"
-          - "  » SSH Protocol : {{ device_output.stdout[2] | trim }}"
+          - "  COMMANDS EXECUTED:"
+          - "{{ manual_config_commands }}"
           - "----------------------------------------------------------------"
+          - "  DEVICE RESPONSE:"
+          - "{{ config_output.updates | default(['No updates performed']) | join('\n') }}"
           - "╚══════════════════════════════════════════════════════════════╝"
 
     - name: 3. Display Final Report
