@@ -7,19 +7,23 @@
     ansible_network_os: cisco.ios.ios
 
   tasks:
-    - name: Apply Manual CLI Configuration
-      ansible.netcommon.cli_config:
-        config: "{{ manual_cli_input }}"
-      register: result
+    - name: Execute Manual CLI Input
+      ansible.netcommon.cli_command:
+        command: "{{ item }}"
+      # This splits your multi-line survey into individual commands
+      loop: "{{ manual_cli_input.split('\n') }}"
+      register: command_results
       when: manual_cli_input | length > 0
 
-    - name: Summary of Changes
+    - name: Display Router Output
       ansible.builtin.debug:
         msg: 
           - "------------------------------------------------"
           - "DEVICE: {{ inventory_hostname }}"
-          - "COMMANDS SENT:"
-          - "{{ manual_cli_input }}"
           - "------------------------------------------------"
-          - "ROUTER RESPONSE:"
-          - "{{ result.updates if result.changed else 'No changes required/applied' }}"
+          {% for result in command_results.results %}
+          - "COMMAND: {{ result.item }}"
+          - "OUTPUT:"
+          - "{{ result.stdout }}"
+          - "------------------------------------------------"
+          {% endfor %}
