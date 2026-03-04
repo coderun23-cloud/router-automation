@@ -18,22 +18,18 @@
 
     - name: 2. View Console Output
       ansible.builtin.debug:
-        msg: |
-          
-          ┌────────────────────────────────────────────────────────────────────────┐
-          │  SSH CONSOLE SESSION: {{ inventory_hostname | upper }} 
-          │  STATUS: CONNECTED 
-          └────────────────────────────────────────────────────────────────────────┘
-          {% if ssh_results.results is defined %}
-          {% for result in ssh_results.results %}
-          {{ inventory_hostname }}# {{ result.item }}
-          {{ result.stdout | default('-- [No Output] --') }}
-          
-          {% endfor %}
-          {% else %}
-          [!] SYSTEM ALERT: NO COMMANDS WERE PROVIDED IN SURVEY.
-          {% endif %}
-          ┌────────────────────────────────────────────────────────────────────────┐
-          │  END OF SESSION - COMMANDS EXECUTED: {{ ssh_results.results | length if ssh_results.results is defined else 0 }}
-          └────────────────────────────────────────────────────────────────────────┘
+        msg: 
+          - "========================================================================"
+          - "  CONNECTED TO DEVICE: {{ inventory_hostname | upper }}"
+          - "========================================================================"
+          - "{% if ssh_results.results is defined %}"
+          - "{% for result in ssh_results.results %}"
+          - "PROMPT> {{ result.item }}"
+          - "OUTPUT:"
+          - "{{ result.stdout | default('-- NO OUTPUT --') }}"
+          - "------------------------------------------------------------------------"
+          - "{% endfor %}"
+          - "{% endif %}"
+          - "  SESSION LOG ENDED"
+          - "========================================================================"
       when: manual_ssh_input | trim | length > 0
