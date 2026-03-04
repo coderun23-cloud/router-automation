@@ -5,25 +5,31 @@
   connection: network_cli
   vars:
     ansible_network_os: cisco.ios.ios
+    # Fallback in case survey is missing
+    manual_ssh_input: ""
 
   tasks:
     - name: 1. Execute Manual CLI Input
       ansible.netcommon.cli_command:
         command: "{{ item }}"
-      # 'select' filter removes the empty lines from the survey input
+      # Filters out empty lines and white space
       loop: "{{ manual_ssh_input.split('\n') | select('regex', '\\S') | list }}"
       register: ssh_results
-      when: manual_ssh_input is defined and manual_ssh_input | length > 0
+      when: manual_ssh_input | trim | length > 0
 
     - name: 2. View Console Output
       ansible.builtin.debug:
         msg: |
           ========= [ SSH SESSION CONSOLE ] =========
           DEVICE: {{ inventory_hostname }}
+          {% if ssh_results.results is defined %}
           {% for result in ssh_results.results %}
           
           > {{ result.item }}
-          {{ result.stdout }}
+          {{ result.stdout | default('No output') }}
           {% endfor %}
+          {% else %}
+          NO COMMANDS WERE EXECUTED.
+          {% endif %}
           ===========================================
-      when: ssh_results is defined
+      when: manual_ssh_input | trim | length > 0
