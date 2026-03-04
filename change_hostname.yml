@@ -1,5 +1,5 @@
 ---
-- name: Network Operation - Update Hostname with NetBox Verification
+- name: Network Operation - Manual Command Execution
   hosts: R1
   gather_facts: no
   connection: network_cli
@@ -7,12 +7,6 @@
     ansible_network_os: cisco.ios.ios
     netbox_url: "http://10.201.6.37:8000"
     netbox_token: "nbt_HaQ2sxFncXGG.kH2ecpVv5zIwCGL2rekELmnGTUJLGMXl5WhNQoB2"
-
-  pre_tasks:
-    - name: Validate Survey Input
-      ansible.builtin.fail:
-        msg: "The variable 'target_hostname' is empty. Please provide a hostname via the survey."
-      when: target_hostname is not defined or target_hostname | length == 0
 
   tasks:
     - name: 1. Fetch Device Details from NetBox
@@ -31,18 +25,12 @@
         msg: "Device {{ inventory_hostname }} not found in NetBox. Aborting."
       when: device_query.json.count == 0
 
-    - name: 3. Change Hostname on Router
-      cisco.ios.ios_hostname:
-        config:
-          hostname: "{{ target_hostname }}"
-        state: merged
+    - name: 3. Apply Manual Configuration Commands
+      cisco.ios.ios_config:
+        lines: "{{ manual_commands.split('\n') }}"
+      when: manual_commands is defined and manual_commands | length > 0
+      register: config_result
 
-    - name: 4. Verify Hostname Change
-      cisco.ios.ios_command:
-        commands:
-          - show running-config | include hostname
-      register: verify_output
-
-    - name: 5. Display Result
+    - name: 4. Display Applied Changes
       ansible.builtin.debug:
-        msg: "Hostname updated successfully. Router reports: {{ verify_output.stdout[0] }}"
+        msg: "Commands applied successfully. Changes: {{ config_result.updates }}"
