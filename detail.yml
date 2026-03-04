@@ -1,5 +1,5 @@
 ---
-- name: Cisco Manual Configuration Portal (DNAC Style)
+- name: Cisco Manual SSH Portal (DNAC Style)
   hosts: R1
   gather_facts: no
   connection: network_cli
@@ -7,23 +7,23 @@
     ansible_network_os: cisco.ios.ios
 
   tasks:
-    - name: Execute Manual CLI Input
+    - name: 1. Execute Manual CLI Input
       ansible.netcommon.cli_command:
         command: "{{ item }}"
-      loop: "{{ manual_cli_input.split('\n') }}"
-      register: command_results
-      when: manual_cli_input | length > 0
+      # 'select' filter removes the empty lines from the survey input
+      loop: "{{ manual_ssh_input.split('\n') | select('regex', '\\S') | list }}"
+      register: ssh_results
+      when: manual_ssh_input is defined and manual_ssh_input | length > 0
 
-    - name: Display Router Output
+    - name: 2. View Console Output
       ansible.builtin.debug:
         msg: |
-          ------------------------------------------------
+          ========= [ SSH SESSION CONSOLE ] =========
           DEVICE: {{ inventory_hostname }}
-          ------------------------------------------------
-          {% for result in command_results.results %}
-          COMMAND: {{ result.item }}
-          OUTPUT:
+          {% for result in ssh_results.results %}
+          
+          > {{ result.item }}
           {{ result.stdout }}
-          ------------------------------------------------
           {% endfor %}
-      when: manual_cli_input | length > 0
+          ===========================================
+      when: ssh_results is defined
